@@ -1,37 +1,22 @@
 #include "gui.h"
-#include "httpclient.h"
-// httpsclient.h includieren, damit man damit interagieren kann
-// Dasselbe, wie auch eine private: scanner bei widget.h !!!
-// Für Popup ausgabe
-#include <QDebug>
-#include <QCoreApplication>
 
 Gui::Gui(QWidget *parent) :
     QWidget(parent)
 {
     setupUi(this);
-    // m_socket = new QTcpSocket(this);
 
-    // Signal ->  Slot-Verbindung
-    connect(&m_socket, &QTcpSocket::connected, this, &HttpClient::connected);
-    connect(&m_socket, &QTcpSocket::readyRead, this, &HttpClient::readyRead);
+    connect(&client, &HttpClient::sendData, this, &Gui::showResult);
 }
 
 void Gui::on_goButton_clicked()
 {
-    // Stelle verbindung mit den Widget Values auf
-    // -> sind Pointer
+    // Stellt verbindung mit dem Server her, indem er die Adresse von Widget hostEntry liest
     QString host = hostEntry->text();
-    // Man bekommt einen String als wert, dieser muss umgewandelt werden
-    // toUShort = to unsigned short
-    quint16 port = 80; // HTTP Port
-
-    // Funktion für Scan wird ausgeführt
-    m_scanner.scan(host, port);
+    // Sendet host an die Funktion getHTTP im httpclient.cpp
+    client.getHTTP(host);
 }
 
-void showResult(quint16 port, QString status)
+void Gui::showResult(QString& httpprintback)
 {
-
+    resultBrowser->append(httpprintback);
 }
-

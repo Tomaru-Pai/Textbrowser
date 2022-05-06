@@ -1,43 +1,38 @@
 #include "httpclient.h"
-#include <QDebug>
-#include <QCoreApplication>
 
 HttpClient::HttpClient(QObject *parent) : QObject(parent)
 {
+    m_socket = new QTcpSocket(this);
 
+    connect(m_socket, &QTcpSocket::connected, this, &HttpClient::connected);
+    connect(m_socket, &QTcpSocket::readyRead, this, &HttpClient::readyRead);
 }
 
-void HttpClient::scan(QString& host, quint16 port)
+void HttpClient::getHTTP(QString& host)
 {
-    bool status = false; // Default immer auf 0
-    // bool = 0 oder 1
-
-    // Verbindung wird hergestellt
-    m_socket.connectToHost(host, port);
-
-    // Prüft obverbindung hergestellt werden kann
-    // TIMEOUT: globale Variable
-    if (m_socket.waitForConnected(TIMEOUT)) {
+    m_socket->connectToHost(host, PORT);
+    if (m_socket->waitForConnected(TIMEOUT) == 0) {
         // Trennt verbindung
-        m_socket.disconnectFromHost();
-        // Meldet, dass verbindung hergestellt worden ist
-        status = true;
+        m_socket->disconnectFromHost();
+
+        // Meldet, dass verbindung nicht hergestellt werden konnte
+        m_signal = "connect failed!";
+        emit sendData(m_signal);
     }
 }
 
-void HttpClient::connected(QString& host)
+
+void HttpClient::connected()
 {
     // normgerechter HTTP Request zum Server
-    m_socket->write("GET / HTTP/1.1\r\nHost:" + host + "\r\n\r\n");
+    m_socket->write("GET / HTTP/1.1\r\nHost:" + m_host + "\r\n\r\n");
 }
 
 void HttpClient::readyRead()
 {
     // HTTP-Antwort vom Server
-    qDebug() << m_socket->readAll();
+    m_signal = m_socket->readAll();
+    emit sendData(m_signal);
     m_socket->disconnectFromHost();
-    QCoreApplication::quit();
 }
-
-
 

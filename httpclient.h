@@ -2,32 +2,31 @@
 #define HTTPCLIENT_H
 
 #include <QObject>
-
-// Include needed Libraries
-#include <QAbstractSocket>
 #include <QTcpSocket>
+#include <QAbstractSocket>
+#include <QCoreApplication>
 
-const int TIMEOUT = 5000; // 5s, verwendet in scanner.cpp
+const int PORT = 80;
+const int TIMEOUT = 5000; // Nach 5 sekunden Anfrage beenden
 
 class HttpClient : public QObject
 {
     Q_OBJECT
 public:
     explicit HttpClient(QObject *parent = nullptr);
-    // scan funktion
-    // port muss quint16 sein weil das verlangt wird
-    void scan(QString& host, quint16 port);
-
-signals:
-    // Sendet an Test Feld Widget
-    void scanFinished(quint16 port, QString status);
-
-public slots:
-    void connected(QString& host);
+    void getHTTP(QString& host);
+    void connected();
     void readyRead();
 
+signals:
+    void sendData(QString& Message);
+
+public slots:
+
 private:
-    QTcpSocket m_socket;
+    QTcpSocket *m_socket;
+    QByteArray m_host;
+    QString m_signal;
 };
 
 #endif // HTTPCLIENT_H
